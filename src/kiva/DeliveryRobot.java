@@ -1,4 +1,4 @@
-package kiva;
+package src.kiva;
 
 import jade.core.Agent;
 
