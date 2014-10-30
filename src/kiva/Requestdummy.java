@@ -1,6 +1,8 @@
 package src.kiva;
 
+import jade.core.AID;
 import jade.core.Agent;
+import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.StaleProxyException;
 
@@ -14,12 +16,13 @@ public class Requestdummy extends Agent {
 	private int max_parts_per_order = 12;
 	private int max_amount_per_part = 12;
 	private double max_sec_delay = 5;
+	private String recipient = "recipient";
+
+	private String order = "";
 
 	protected void setup() {
 
-		// say hello
-		System.out.println("request dummy is here");
-
+		// read args
 		Object[] args = getArguments();
 		if (args != null && args.length > 2) {
 			max_parts_per_order = Integer.parseInt(args[0].toString());
@@ -30,7 +33,7 @@ public class Requestdummy extends Agent {
 		// spawn recipient
 		AgentContainer container = getContainerController();
 		try {
-			container.createNewAgent("recipient", "src.kiva.Recipient", null);
+			container.createNewAgent(recipient, "src.kiva.Recipient", null);
 		} catch (StaleProxyException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -41,25 +44,23 @@ public class Requestdummy extends Agent {
 
 			Random rand = new Random();
 
-			String order = " ";
-
-			// choose a random number of parts
+			// randomly create an order
 			for (int parts = 0; parts < rand.nextInt(max_parts_per_order); parts++) {
-
-				// The part name is a string of a random number
 				int random = rand.nextInt(1000);
 				String product = Integer.toString(random);
-
-				// Order the part at most 12 times
-
 				for (int amount = 0; amount < rand.nextInt(max_amount_per_part); amount++) {
 					order = order + product + ", ";
 				}
-
 			}
 
-			// TODO: publish order
+			// publish order
+			// TODO: change Message Type
 			System.out.println(order);
+			AID dest = new AID(recipient, AID.ISLOCALNAME);
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.setContent(order);
+			msg.addReceiver(dest);
+			send(msg);
 
 			// wait some time
 			try {
@@ -68,7 +69,7 @@ public class Requestdummy extends Agent {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
+			// repeat
 		}
 	}
 
