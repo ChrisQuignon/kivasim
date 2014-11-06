@@ -16,7 +16,7 @@ public class Requestdummy extends Agent {
 
 	private int maxPartsPerOrder = 12;
 	private int maxAmountPerPart = 12;
-	private double maxSecDelay = 5;
+	private double maxSecDelay = 2.2;
 
 	private String order;
 	private String recipient = "recipient";
