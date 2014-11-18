@@ -52,7 +52,7 @@ public class Requestdummy extends Agent {
 			// randomly create an order
 			order = "";
 			for (int parts = 0; parts <= rand.nextInt(maxPartsPerOrder); parts++) {
-				int random = rand.nextInt(1000);
+				int random = rand.nextInt(10);
 				String product = Integer.toString(random);
 				for (int amount = 0; amount < rand.nextInt(maxAmountPerPart); amount++) {
 					order = order + product + ", ";
