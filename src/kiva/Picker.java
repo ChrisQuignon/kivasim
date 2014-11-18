@@ -96,9 +96,13 @@ public class Picker extends Agent {
 				// No disconfirm, for now we just wait for timeout
 				// }
 
-				if (order != null) {
-					// TODO: request products
-				}
+			//	if (order != null) {
+					// TODO: request product availability from the shelves for now
+				//ACLMessage productRequest = new ACLMessage(ACLMessage.REQUEST);
+				//	productRequest.addReceiver();
+				//send(productRequest);
+				//}
+				//}
 
 			}
 		});
