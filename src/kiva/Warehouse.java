@@ -47,7 +47,7 @@ public class Warehouse extends Agent {
 				}
 			}
 		}
+		//TODO: takeDown()
 	}
-
-	// TODO: Kill
+	//TODO: Write takeDown()
 }

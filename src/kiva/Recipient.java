@@ -40,4 +40,5 @@ public class Recipient extends Agent {
 			}
 		});
 	}
+	//TODO: Write takeDown()
 }

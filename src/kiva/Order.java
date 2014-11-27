@@ -48,7 +48,7 @@ public class Order extends Agent {
 		}
 
 		// wait for orders
-		pickerRequest = new ReceiverBehaviour(this, (long) 4000,
+		pickerRequest = new ReceiverBehaviour(this, timeout,
 				MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 		addBehaviour(pickerRequest);
 
@@ -67,16 +67,17 @@ public class Order extends Agent {
 						msg.addReceiver(picker);
 						send(msg);
 					} catch (TimedOut e) {
-
+						//e.printStackTrace();
 					} catch (NotYetReady e) {
-
+						//e.printStackTrace();
 					}
 				}
+				
+				//maybe check if we are still processed
 			};
 		});
 
 	}
-
-	// TODO: Answer
-
+	
+	//TODO: Write takeDown()
 }

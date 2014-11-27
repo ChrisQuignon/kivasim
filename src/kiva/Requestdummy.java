@@ -14,9 +14,9 @@ import java.util.Random;
  */
 public class Requestdummy extends Agent {
 
-	private int maxPartsPerOrder = 12;
-	private int maxAmountPerPart = 12;
-	private double maxSecDelay = 2.2;
+	private int maxPartsPerOrder = 4;
+	private int maxAmountPerPart = 10;
+	private double maxSecDelay = 8;
 
 	private String order;
 	private String recipient = "recipient";
@@ -81,4 +81,5 @@ public class Requestdummy extends Agent {
 			// repeat
 		}
 	}
+	//TODO: Write takeDown()
 }

@@ -1,6 +1,8 @@
 package src.kiva;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -20,13 +22,23 @@ import jade.lang.acl.MessageTemplate;
  * products. Afterwards it returns the order.
  **/
 public class Picker extends Agent {
-	private HashSet<AID> orderAgents;
+
+	private Map<AID, String[]> availability;
+	private Map<AID, String[]> requested;
+	boolean allRequested;
 	private String[] order;
-	private AID[] sellerAgents;
+	
+	private HashSet<AID> orderAgents;
+	private HashSet<AID> shelfAgents;
+	private HashSet<AID> deliveryRobots;
+	
+	private AID[] allOrderAgents;
+	private AID[] allShelfAgents;
 	int agentPosition;
 
 	ReceiverBehaviour confirm;
-	// ReceiverBehaviour disconfirm;
+	ReceiverBehaviour inform;
+
 	long timeout = 1000;// ms to wait until timeout
 
 	protected void setup() {
@@ -34,42 +46,47 @@ public class Picker extends Agent {
 
 		confirm = new ReceiverBehaviour(this, timeout,
 				MessageTemplate.MatchPerformative(ACLMessage.CONFIRM));
-		// disconfirm = new ReceiverBehaviour(this, timeout,
-		// MessageTemplate.MatchPerformative(ACLMessage.DISCONFIRM));
+		inform = new ReceiverBehaviour(this, timeout,
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 
+		addBehaviour(inform);
 		addBehaviour(confirm);
-		// addBehaviour(disconfirm);
 
 		orderAgents = new HashSet<AID>();
+		shelfAgents = new HashSet<AID>();
+		deliveryRobots = new HashSet<AID>();
+		availability = new HashMap<AID,String[]>();
+		requested = new HashMap<AID,String[]>();
+		allRequested = false;
 
 		// MAIN
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
+				DFAgentDescription template = new DFAgentDescription();
+				ServiceDescription sd = new ServiceDescription();
 
 				if (order == null && !confirm.done()) {
 					// get all agents with a "giveOrder" service
-					DFAgentDescription template = new DFAgentDescription();
-					ServiceDescription sd = new ServiceDescription();
 					sd.setType("giveOrder");
 					template.addServices(sd);
 					try {
 						DFAgentDescription[] result = DFService.search(myAgent,
 								template);
-						sellerAgents = new AID[result.length];
+						allOrderAgents = new AID[result.length];
 						for (int i = 0; i < result.length; ++i) {
-							sellerAgents[i] = result[i].getName();
+							allOrderAgents[i] = result[i].getName();
 						}
 					} catch (FIPAException fe) {
 						fe.printStackTrace();
 					}
 
 					// send request to first Agent
-					if (agentPosition < sellerAgents.length) {
+					if (agentPosition < allOrderAgents.length) {
 						ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-
-						msg.addReceiver(sellerAgents[agentPosition]);
+						msg.addReceiver(allOrderAgents[agentPosition]);
 						send(msg);
 					}
+					//What if the first agent does not answer?
 				}
 
 				if (order == null && confirm.done()) {
@@ -91,22 +108,88 @@ public class Picker extends Agent {
 						agentPosition = agentPosition + 1;
 					}
 				}
+				
+				if ( order != null && shelfAgents.isEmpty()) {
+					
+					// get all agents with a "giveOrder" service
+					sd.setType("giveProduct");
+					template.addServices(sd);
+					try {
+						DFAgentDescription[] result = DFService.search(myAgent,
+								template);
+						allShelfAgents = new AID[result.length];
+						for (int i = 0; i < result.length; ++i) {
+							allShelfAgents[i] = result[i].getName();
+						}
+					} catch (FIPAException fe) {
+						fe.printStackTrace();
+					}
 
-				// if(order == null && disconfirm.done()){
-				// No disconfirm, for now we just wait for timeout
-				// }
-
-			//	if (order != null) {
-					// TODO: request product availability from the shelves for now
-				//ACLMessage productRequest = new ACLMessage(ACLMessage.REQUEST);
-				//	productRequest.addReceiver();
-				//send(productRequest);
-				//}
-				//}
-
+					// send request to all Agents
+					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+					for(AID a: allShelfAgents){
+						msg.addReceiver(a);
+					}
+					for(String s : order) {
+						if(msg.getContent() == null){
+							msg.setContent(" ");
+						}
+						msg.setContent(msg.getContent()+ s + ", ");
+					}
+					send(msg);
+				}
+				
+				//We got an inform
+				if(inform.done()){
+					try {
+						 ACLMessage msg = inform.getMessage();
+						
+						//Answer from a delivery robot
+						if(msg.getContent()=="OK"){
+							deliveryRobots.add(msg.getSender());
+						}
+						//Answer from a Shelf
+						else{
+							availability.put(msg.getSender(), msg.getContent().split(", "));
+						}
+						
+					} catch (TimedOut e) {
+						e.printStackTrace();
+					} catch (NotYetReady e) {
+						e.printStackTrace();
+					}
+				}
+				
+				//We need a driver
+				if(!allRequested){
+					//TODO request driver
+					
+					//check what products still need to be requested
+					
+					//request driver
+					//What if the shelf is already carried by another robot?
+					
+					//possibly wait for answer
+					//pop() from availability
+					//store request in requested
+					
+					//set allRequested Flag
+					
+					System.out.println(this.getAgent().getName()
+							+ " needs a driver!");
+				}
+				
+				//wait for inform to pick from which shelf
+				//check what was ordered from this shelf
+				//decrease products from shelf
+				//delete from requested
+				
+				//if everything is picked: kill order agent
+				//reset this agent
+				
 			}
 		});
 
 	}
-
+	//TODO: Write takeDown()
 }
