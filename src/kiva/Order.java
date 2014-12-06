@@ -21,7 +21,7 @@ public class Order extends Agent {
 	private String[] order;
 	AID picker;
 	ReceiverBehaviour pickerRequest;
-	long timeout = 100;// ms to wait until timeout
+	long timeout = -1;// ms to wait until timeout
 
 	protected void setup() {
 		// read args
@@ -73,11 +73,16 @@ public class Order extends Agent {
 					}
 				}
 				
-				//maybe check if we are still processed
+				//maybe check if we are still processing the orders.
+				
+				
 			};
 		});
-
+        
 	}
 	
-	//TODO: Write takeDown()
+	//takeDown()
+	protected void takeDown() {
+		System.out.println("Order agent" + getAID().getName() +"terminating" );
+	}
 }

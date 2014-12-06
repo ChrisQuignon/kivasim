@@ -40,5 +40,8 @@ public class Recipient extends Agent {
 			}
 		});
 	}
-	//TODO: Write takeDown()
+	//takeDown()
+	protected void takeDown() {
+		System.out.println("Recipient agent" + getAID().getName() +"terminating" );
+	}
 }
