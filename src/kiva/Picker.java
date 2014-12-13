@@ -3,6 +3,7 @@ package src.kiva;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -23,26 +24,28 @@ import jade.lang.acl.MessageTemplate;
  **/
 public class Picker extends Agent {
 
-	private Map<AID, String[]> availability;
-	private Map<AID, String[]> requested;
+	// A map of all shelfs and their products
+	private Map<AID, String[]> availableShelfs;
+
+	// A map of all shelfs and what products we requested from there
+	private Map<AID, String[]> requestedShelfs;
 	boolean allRequested;
+
+	// The order of this shelf
 	private String[] order;
-	
+
 	private HashSet<AID> orderAgents;
-	private HashSet<AID> shelfAgents;
 	private HashSet<AID> deliveryRobots;
-	
-	private AID[] allOrderAgents;
-	private AID[] allShelfAgents;
-	int agentPosition;
 
 	ReceiverBehaviour confirm;
 	ReceiverBehaviour inform;
 
-	long timeout = 1000;// ms to wait until timeout
+	long timeout = -1;// We always answer
+
+	DFAgentDescription template;
+	ServiceDescription sd;
 
 	protected void setup() {
-		agentPosition = 0;
 
 		confirm = new ReceiverBehaviour(this, timeout,
 				MessageTemplate.MatchPerformative(ACLMessage.CONFIRM));
@@ -53,143 +56,164 @@ public class Picker extends Agent {
 		addBehaviour(confirm);
 
 		orderAgents = new HashSet<AID>();
-		shelfAgents = new HashSet<AID>();
 		deliveryRobots = new HashSet<AID>();
-		availability = new HashMap<AID,String[]>();
-		requested = new HashMap<AID,String[]>();
+		availableShelfs = new HashMap<AID, String[]>();
+		requestedShelfs = new HashMap<AID, String[]>();
 		allRequested = false;
+
+		template = new DFAgentDescription();
+		sd = new ServiceDescription();
 
 		// MAIN
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
-				DFAgentDescription template = new DFAgentDescription();
-				ServiceDescription sd = new ServiceDescription();
 
 				if (order == null && !confirm.done()) {
-					// get all agents with a "giveOrder" service
-					sd.setType("giveOrder");
-					template.addServices(sd);
-					try {
-						DFAgentDescription[] result = DFService.search(myAgent,
-								template);
-						allOrderAgents = new AID[result.length];
-						for (int i = 0; i < result.length; ++i) {
-							allOrderAgents[i] = result[i].getName();
-						}
-					} catch (FIPAException fe) {
-						fe.printStackTrace();
-					}
-
-					// send request to first Agent
-					if (agentPosition < allOrderAgents.length) {
-						ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-						msg.addReceiver(allOrderAgents[agentPosition]);
-						send(msg);
-					}
-					//What if the first agent does not answer?
+					System.out.println("requestOrders");
+					requestOrder();
 				}
 
 				if (order == null && confirm.done()) {
-
-					try {
-						ACLMessage msg = confirm.getMessage();
-						order = msg.getContent().split((", "));
-						orderAgents.add(msg.getSender());
-						agentPosition = 0;
-
-						System.out.println(this.getAgent().getName()
-								+ " has order: " + msg.getContent());
-
-					} catch (TimedOut e) {
-						// switch to next agent
-						agentPosition = agentPosition + 1;
-					} catch (NotYetReady e) {
-						// switch to next agent
-						agentPosition = agentPosition + 1;
-					}
+					System.out.println("GetOrder");
+					setOrder();
 				}
-				
-				if ( order != null && shelfAgents.isEmpty()) {
+
+				if (order != null && availableShelfs.isEmpty()) {
+					requestShelfAgents();
+					System.out.println("reQuestShelfAgent");
+				}
+
+				// We got an inform
+				if (inform.done()) {
 					
-					// get all agents with a "giveOrder" service
-					sd.setType("giveProduct");
-					template.addServices(sd);
 					try {
-						DFAgentDescription[] result = DFService.search(myAgent,
-								template);
-						allShelfAgents = new AID[result.length];
-						for (int i = 0; i < result.length; ++i) {
-							allShelfAgents[i] = result[i].getName();
-						}
-					} catch (FIPAException fe) {
-						fe.printStackTrace();
-					}
+						ACLMessage msg = inform.getMessage();
 
-					// send request to all Agents
-					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-					for(AID a: allShelfAgents){
-						msg.addReceiver(a);
-					}
-					for(String s : order) {
-						if(msg.getContent() == null){
-							msg.setContent(" ");
-						}
-						msg.setContent(msg.getContent()+ s + ", ");
-					}
-					send(msg);
-				}
-				
-				//We got an inform
-				if(inform.done()){
-					try {
-						 ACLMessage msg = inform.getMessage();
-						
-						//Answer from a delivery robot
-						if(msg.getContent()=="OK"){
+						// Answer from a delivery robot
+						if (msg.getContent() == "OK") {
+							System.out.println("Answer from deliveryRobot");
 							deliveryRobots.add(msg.getSender());
 						}
-						//Answer from a Shelf
-						else{
-							availability.put(msg.getSender(), msg.getContent().split(", "));
+						// Answer from a Shelf
+						else {
+							System.out.println("Answer from shelf");
+							availableShelfs.put(msg.getSender(), msg.getContent()
+									.split(", "));
 						}
-						
+
 					} catch (TimedOut e) {
 						e.printStackTrace();
 					} catch (NotYetReady e) {
 						e.printStackTrace();
 					}
 				}
-				
-				//We need a driver
-				if(!allRequested){
-					//TODO request driver
+
+				//
+				if(order != null && !allRequested){
+					// check what products still need to be requested
 					
-					//check what products still need to be requested
+					//find products we need that are not requested yet
 					
-					//request driver
-					//What if the shelf is already carried by another robot?
+					//order delivery
+					requestDeliveryRobot();
 					
-					//possibly wait for answer
-					//pop() from availability
-					//store request in requested
-					
-					//set allRequested Flag
-					
-					System.out.println(this.getAgent().getName()
-							+ " needs a driver!");
+					allRequested = true;
 				}
 				
-				//wait for inform to pick from which shelf
-				//check what was ordered from this shelf
-				//decrease products from shelf
-				//delete from requested
+				if (order != null && allRequested) {
+					
 				
-				//if everything is picked: kill order agent
-				//reset this agent
+
+				// wait for inform to pick from which shelf
+				// check what was ordered from this shelf
+				// decrease products from shelf
+				// delete from requested
+
+				// if everything is picked: kill order agent
+				// reset this agent
 				
+				}
+
+			}
+
+			private void requestDeliveryRobot() {
+
+				//TODO request delivery robot
+				
+				// What if the shelf is already carried by another robot?
+
+				// possibly wait for answer
+				// pop() from availability
+				// store request in requested
+
+				// set allRequested Flag
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			private void requestShelfAgents() {
+
+				sd.setType("giveProduct");
+				template.addServices(sd);
+				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+
+				try {
+					DFAgentDescription[] result = DFService.search(myAgent,
+							template);
+					for (DFAgentDescription agent : result) {
+						msg.addReceiver(agent.getName());
+					}
+					for (String s : order) {
+						if (msg.getContent() == null) {
+							msg.setContent(" ");
+						}
+						msg.setContent(msg.getContent() + s + ", ");
+					}
+					send(msg);
+
+				} catch (FIPAException fe) {
+					fe.printStackTrace();
+				}
+			}
+
+			private void setOrder() {
+				// Set Order
+				try {
+					ACLMessage msg = confirm.getMessage();
+					order = msg.getContent().split((", "));
+					orderAgents.add(msg.getSender());
+					
+					System.out.println(this.getAgent().getName()
+							+ " has order: " + msg.getContent());
+				} catch (TimedOut e) {
+				} catch (NotYetReady e) {
+				}
+
+			}
+
+			private void requestOrder() {
+
+				sd.setType("giveOrder");
+				template.addServices(sd);
+
+				try {
+					DFAgentDescription[] result = DFService.search(myAgent,
+							template);
+					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+					for (DFAgentDescription agent : result) {
+						msg.addReceiver(agent.getName());
+						send(msg);
+					}
+				} catch (FIPAException fe) {
+					fe.printStackTrace();
+				}
 			}
 		});
 
 	}
-	//TODO: Write takeDown()
+	// TODO: Write takeDown()
 }

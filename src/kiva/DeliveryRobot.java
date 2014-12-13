@@ -15,8 +15,8 @@ import jade.lang.acl.MessageTemplate;
 
 public class DeliveryRobot extends Agent {
 
-	// accept whenever the message arrives
-	long timeout = -1;
+
+	long timeout = -1; // We always answer
 	boolean answer;
 	ReceiverBehaviour informing_free;
 	ReceiverBehaviour informing_shelf;
@@ -34,6 +34,8 @@ public class DeliveryRobot extends Agent {
 		// Adding the behaviours.
 		addBehaviour(informing_free);
 		addBehaviour(informing_shelf);
+		
+		//TODO register behaviour in yellow pages
 
 		// Add cyclic behaviour for informing_free behaviour
 		addBehaviour(new CyclicBehaviour(this) {

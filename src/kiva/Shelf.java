@@ -21,7 +21,7 @@ import java.util.Map;
  **/
 public class Shelf extends Agent {
 	ReceiverBehaviour pickerRequest;
-	long timeout = 1000;// ms to wait until timeout
+	long timeout = -1;// We always answer
 
 	protected void setup() {
 		Map<String,Integer> shelves = new HashMap<String,Integer>();
@@ -60,32 +60,37 @@ public class Shelf extends Agent {
 			public void action() {
 				
 				if(pickerRequest.done()){
-					try {
-						//System.out.println("GOT REQUEST: " + pickerRequest.getMessage().getContent());
-						String requestedProducts[] = pickerRequest.getMessage().getContent().split(", ");
-						
-						String availableProducts[] = available(requestedProducts);
-						if (availableProducts.length > 0){
-							//Answer
-							ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-							msg.setContent("");
-							for (String product : availableProducts) {
-								msg.setContent(msg.getContent() + product + ", ");
-							}
-							msg.addReceiver(pickerRequest.getMessage().getSender());
-							send(msg);
-							//System.out.println("OK, GOT" + msg.getContent());
-						}
-						//No answer if we do not have any product
-						
-					} catch (TimedOut e) {
-						e.printStackTrace();
-					} catch (NotYetReady e) {
-						e.printStackTrace();
-					}
+					answerRequest();
 				}
 				
 				//What if the Shelf is empty or fragmented?
+			}
+
+			private void answerRequest() {
+				try {
+					String requestedProducts[] = pickerRequest.getMessage().getContent().split(", ");
+					
+					String availableProducts[] = available(requestedProducts);
+					if (availableProducts.length > 0){
+						//Answer
+						ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+						msg.setContent("");
+						for (String product : availableProducts) {
+							msg.setContent(msg.getContent() + product + ", ");
+						}
+						msg.addReceiver(pickerRequest.getMessage().getSender());
+						send(msg);
+						//System.out.println("OK, GOT" + msg.getContent());
+					}
+					
+					//No answer if we do not have any product
+					
+				} catch (TimedOut e) {
+					e.printStackTrace();
+				} catch (NotYetReady e) {
+					e.printStackTrace();
+				}
+				
 			};
 		});
 	}
@@ -93,7 +98,7 @@ public class Shelf extends Agent {
 	//TODO: write method to check for available products
 	protected String[] available(String[] requestedProducts) {
 		//puts all the available product from the request into a string
-		String availableProducts[] = {"1", "2"};
+		String availableProducts[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
 		
 		
 		

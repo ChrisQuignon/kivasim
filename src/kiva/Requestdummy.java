@@ -14,9 +14,9 @@ import java.util.Random;
  */
 public class Requestdummy extends Agent {
 
-	private int maxPartsPerOrder = 3;
-	private int maxAmountPerPart = 10;
-	private double maxSecDelay = 60;
+	private int maxPartsPerOrder = 1;
+	private int maxAmountPerPart = 1;
+	private double maxSecDelay = 30;
 
 	private String order;
 	private String recipient = "recipient";
@@ -54,10 +54,12 @@ public class Requestdummy extends Agent {
 			for (int parts = 0; parts <= rand.nextInt(maxPartsPerOrder); parts++) {
 				int random = rand.nextInt(10);
 				String product = Integer.toString(random);
-				for (int amount = 0; amount < rand.nextInt(maxAmountPerPart); amount++) {
-					order = order + product + ", ";
+				
+				for (int amount = 0; amount <= rand.nextInt(maxAmountPerPart); amount++) {
+					order = order+ product  + ", " ;
 				}
 			}
+			order.substring(0, (order.length()-2));
 
 			// publish order
 			// TODO: change Message Type

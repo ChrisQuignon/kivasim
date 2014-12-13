@@ -21,7 +21,7 @@ public class Order extends Agent {
 	private String[] order;
 	AID picker;
 	ReceiverBehaviour pickerRequest;
-	long timeout = -1;// ms to wait until timeout
+	long timeout = -1;// We always answer
 
 	protected void setup() {
 		// read args
