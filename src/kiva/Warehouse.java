@@ -24,7 +24,7 @@ public class Warehouse extends Agent {
 		agents.put("Auctioneer", 1);
 		agents.put("DeliveryRobot", 1);
 		agents.put("Picker", 1);
-		agents.put("Shelf", 9);
+		agents.put("Shelf", 1);
 		
 		// the request dummy spawns a recipient
 		agents.put("Recipient", 0); 
