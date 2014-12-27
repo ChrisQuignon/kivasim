@@ -96,6 +96,7 @@ public class Picker extends Agent {
 
 				// order delivery
 				requestDeliveryRobot();
+				System.out.println("Requesting Delivery");
 
 				allRequested = true;
 			}
