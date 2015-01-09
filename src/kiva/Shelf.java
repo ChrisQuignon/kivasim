@@ -48,13 +48,13 @@ public class Shelf extends Agent {
 		// MAIN
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
-				
+
 				request = myAgent.receive(MessageTemplate
 						.MatchPerformative(ACLMessage.REQUEST));
 
 				if (request != null) {
 					answerRequest();
-					//System.out.println("ACK");
+					// System.out.println("ACK");
 				}
 
 				// What if the Shelf is empty or fragmented?
@@ -89,5 +89,9 @@ public class Shelf extends Agent {
 
 		return availableProducts;
 	}
-	// TODO: Write takeDown()
+
+	protected void takeDown() {
+		System.out.println("Recipient agent " + getAID().getName()
+				+ " terminating");
+	}
 }

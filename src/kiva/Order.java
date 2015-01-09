@@ -43,13 +43,10 @@ public class Order extends Agent {
 			fe.printStackTrace();
 		}
 
-
-		
-
 		// MAIN
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
-				
+
 				request = myAgent.receive(MessageTemplate
 						.MatchPerformative(ACLMessage.REQUEST));
 
@@ -62,7 +59,7 @@ public class Order extends Agent {
 					}
 					msg.addReceiver(picker);
 					send(msg);
-					}
+				}
 
 				// maybe check if we are still processing the orders.
 
@@ -71,8 +68,8 @@ public class Order extends Agent {
 
 	}
 
-	// takeDown()
 	protected void takeDown() {
-		System.out.println("Order agent" + getAID().getName() + "terminating");
+		System.out
+				.println("Order agent " + getAID().getName() + " terminating");
 	}
 }

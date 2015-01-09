@@ -54,12 +54,12 @@ public class Requestdummy extends Agent {
 			for (int parts = 0; parts <= rand.nextInt(maxPartsPerOrder); parts++) {
 				int random = rand.nextInt(10);
 				String product = Integer.toString(random);
-				
+
 				for (int amount = 0; amount <= rand.nextInt(maxAmountPerPart); amount++) {
-					order = order+ product  + ", " ;
+					order = order + product + ", ";
 				}
 			}
-			order.substring(0, (order.length()-2));
+			order.substring(0, (order.length() - 2));
 
 			// publish order
 			// TODO: change Message Type
@@ -83,5 +83,9 @@ public class Requestdummy extends Agent {
 			// repeat
 		}
 	}
-	//TODO: Write takeDown()
+
+	protected void takeDown() {
+		System.out.println("Request dummy agent " + getAID().getName()
+				+ " terminating");
+	}
 }

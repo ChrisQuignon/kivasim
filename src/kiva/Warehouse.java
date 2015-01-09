@@ -25,29 +25,32 @@ public class Warehouse extends Agent {
 		agents.put("DeliveryRobot", 1);
 		agents.put("Picker", 1);
 		agents.put("Shelf", 1);
-		
+
 		// the request dummy spawns a recipient
-		agents.put("Recipient", 0); 
+		agents.put("Recipient", 0);
 		agents.put("Requestdummy", 1);
 
-
-		//Spawn Agents
+		// Spawn Agents
 		for (Entry<String, Integer> agent : agents.entrySet()) {
 			for (int i = 0; i < agent.getValue(); i++) {
 				try {
-					recAgent = container.createNewAgent(
-							agent.getKey()+ Integer.toString(i),
-							"src.kiva." + agent.getKey(),
-							null);
+					recAgent = container.createNewAgent(agent.getKey()
+							+ Integer.toString(i),
+							"src.kiva." + agent.getKey(), null);
 					recAgent.start();
-					System.out.println("Spawning " + agent.getKey()+ Integer.toString(i));
+					System.out.println("Spawning " + agent.getKey()
+							+ Integer.toString(i));
 				} catch (StaleProxyException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		}
-		//TODO: takeDown()
+		takeDown();
 	}
-	//TODO: Write takeDown()
+
+	protected void takeDown() {
+		System.out.println("Warehouse agent " + getAID().getName()
+				+ " terminating");
+	}
 }

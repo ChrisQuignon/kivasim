@@ -52,7 +52,7 @@ public class Picker extends Agent {
 		@Override
 		public void action() {
 
-			//receive messages
+			// receive messages
 			confirm = myAgent.receive(MessageTemplate
 					.MatchPerformative(ACLMessage.CONFIRM));
 			inform = myAgent.receive(MessageTemplate
@@ -139,7 +139,7 @@ public class Picker extends Agent {
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("giveProduct");
 			template.addServices(sd);
-			
+
 			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 
 			try {
@@ -189,6 +189,11 @@ public class Picker extends Agent {
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
+		}
+
+		protected void takeDown() {
+			System.out.println("Picker agent " + getAID().getName()
+					+ " terminating");
 		}
 	}
 }
