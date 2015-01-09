@@ -150,7 +150,7 @@ public class Picker extends Agent {
 				}
 				for (String s : order) {
 					if (msg.getContent() == null) {
-						msg.setContent(" ");
+						msg.setContent("");
 					}
 					msg.setContent(msg.getContent() + s + ", ");
 				}

@@ -21,7 +21,6 @@ public class Warehouse extends Agent {
 		agents = new HashMap<String, Integer>();
 
 		// How many of which agents do we want to have?
-		agents.put("Auctioneer", 1);
 		agents.put("DeliveryRobot", 1);
 		agents.put("Picker", 1);
 		agents.put("Shelf", 1);
@@ -49,7 +48,7 @@ public class Warehouse extends Agent {
 		takeDown();
 	}
 
-	protected void takeDown() {
+	protected void takeDown() { 
 		System.out.println("Warehouse agent " + getAID().getName()
 				+ " terminating");
 	}
