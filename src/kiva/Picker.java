@@ -3,6 +3,7 @@ package src.kiva;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -61,6 +62,7 @@ public class Picker extends Agent {
 			if (order == null) {
 				System.out.println("requestOrders");
 				requestOrder();
+				//TODO define frequencey
 			}
 
 			if (confirm != null) {
@@ -85,6 +87,11 @@ public class Picker extends Agent {
 					System.out.println("Answer from shelf");
 					availableShelfs.put(inform.getSender(), inform.getContent()
 							.split(", "));
+					
+					//TODO check if allRequested
+					//allRequested = (availableShelfs.size() == requestedShelfs.size());
+					updateAllRequested();
+					//System.out.println(allRequested);
 				}
 			}
 
@@ -95,9 +102,12 @@ public class Picker extends Agent {
 				// find products we need that are not requested yet
 
 				// order delivery
+				
+				
 				requestDeliveryRobot();
 				System.out.println("Requesting Delivery");
-
+				
+				//TODO Dummy value - removes
 				allRequested = true;
 			}
 
@@ -131,6 +141,40 @@ public class Picker extends Agent {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		
+		private void updateAllRequested(){
+			
+			//serialize order into a HashMap
+			Map<String, Integer> ordersAmount = new HashMap<String, Integer>();
+			for(String product:order){
+				if(!ordersAmount.containsValue(product)){
+					ordersAmount.put(product, 1);
+				}
+				else{
+					ordersAmount.put(product, ordersAmount.get(product)+1);
+				}
+			}
+			
+			//decrease Hashmap for all available shelves
+			for(String[] available : availableShelfs.values()){
+				
+
+				for(String product:available){
+					if(ordersAmount.containsKey(product)){
+						if(ordersAmount.get(product) > 1){
+							ordersAmount.put(product, ordersAmount.get(product)-1);
+						}
+						else{
+							ordersAmount.remove(product);
+						}
+					}
+				}
+			}
+			
+			//Iff the Hashmap is decreased to zero
+			//everything is available
+			allRequested = ordersAmount.isEmpty();		
 		}
 
 		private void requestShelfAgents() {
