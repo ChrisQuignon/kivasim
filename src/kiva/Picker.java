@@ -145,36 +145,27 @@ public class Picker extends Agent {
 		
 		private void updateAllRequested(){
 			
-			//serialize order into a HashMap
-			Map<String, Integer> ordersAmount = new HashMap<String, Integer>();
-			for(String product:order){
-				if(!ordersAmount.containsValue(product)){
-					ordersAmount.put(product, 1);
-				}
-				else{
-					ordersAmount.put(product, ordersAmount.get(product)+1);
-				}
+			String checkOrder = "";
+			
+			for(String product: order){
+				checkOrder = checkOrder + product;
 			}
 			
-			//decrease Hashmap for all available shelves
+			System.out.println(checkOrder);
+			
 			for(String[] available : availableShelfs.values()){
-				
-
 				for(String product:available){
-					if(ordersAmount.containsKey(product)){
-						if(ordersAmount.get(product) > 1){
-							ordersAmount.put(product, ordersAmount.get(product)-1);
-						}
-						else{
-							ordersAmount.remove(product);
-						}
+					//Strip order
+					if(checkOrder.contains(product)){
+						int i = checkOrder.indexOf(product);
+						checkOrder = checkOrder.substring(0, i) + 
+								checkOrder.substring(i+product.length(), checkOrder.length());	
 					}
 				}
 			}
+			allRequested = (checkOrder.length() == 0);
 			
-			//Iff the Hashmap is decreased to zero
-			//everything is available
-			allRequested = ordersAmount.isEmpty();		
+			System.out.println(allRequested);
 		}
 
 		private void requestShelfAgents() {
