@@ -69,7 +69,8 @@ public class Order extends Agent {
 	}
 
 	protected void takeDown() {
-		System.out
-				.println("Order agent " + getAID().getName() + " terminating");
+		System.out.println("Order agent " + getAID().getName()
+				+ " terminating");
+		doDelete();
 	}
 }

@@ -41,9 +41,9 @@ public class Recipient extends Agent {
 		});
 	}
 
-
 	protected void takeDown() {
 		System.out.println("Recipient agent " + getAID().getName()
 				+ " terminating");
+		doDelete();
 	}
 }

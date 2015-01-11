@@ -107,12 +107,14 @@ public class Picker extends Agent {
 				requestDeliveryRobot();
 				System.out.println("Requesting Delivery");
 				
-				//TODO Dummy value - removes
-				allRequested = true;
 			}
 
 			if (order != null && allRequested) {
 
+				System.out.println("NEXT PLS");
+				
+				//TODO Continue here
+				takeDown();
 				// wait for inform to pick from which shelf
 				// check what was ordered from this shelf
 				// decrease products from shelf
@@ -145,13 +147,11 @@ public class Picker extends Agent {
 		
 		private void updateAllRequested(){
 			
+			//copy order in String
 			String checkOrder = "";
-			
 			for(String product: order){
 				checkOrder = checkOrder + product;
 			}
-			
-			System.out.println(checkOrder);
 			
 			for(String[] available : availableShelfs.values()){
 				for(String product:available){
@@ -163,6 +163,7 @@ public class Picker extends Agent {
 					}
 				}
 			}
+			
 			allRequested = (checkOrder.length() == 0);
 			
 			System.out.println(allRequested);
@@ -225,12 +226,11 @@ public class Picker extends Agent {
 				fe.printStackTrace();
 			}
 		}
-
+		
 		protected void takeDown() {
 			System.out.println("Picker agent " + getAID().getName()
 					+ " terminating");
+			doDelete();
 		}
 	}
 }
-// TODO: Write takeDown()
-

@@ -99,5 +99,6 @@ public class Shelf extends Agent {
 	protected void takeDown() {
 		System.out.println("Shelf agent " + getAID().getName()
 				+ " terminating");
+		doDelete();
 	}
 }

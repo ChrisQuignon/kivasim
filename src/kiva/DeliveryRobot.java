@@ -48,5 +48,6 @@ public class DeliveryRobot extends Agent {
 	protected void takeDown() {
 		System.out.println("Delivery Robots " + getAID().getName()
 				+ " terminating");
+		doDelete();
 	}
 }

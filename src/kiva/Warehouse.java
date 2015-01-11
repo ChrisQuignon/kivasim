@@ -51,5 +51,6 @@ public class Warehouse extends Agent {
 	protected void takeDown() { 
 		System.out.println("Warehouse agent " + getAID().getName()
 				+ " terminating");
+		doDelete();
 	}
 }

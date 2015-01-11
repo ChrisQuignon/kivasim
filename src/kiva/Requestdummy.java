@@ -87,5 +87,6 @@ public class Requestdummy extends Agent {
 	protected void takeDown() {
 		System.out.println("Request dummy agent " + getAID().getName()
 				+ " terminating");
+		doDelete();
 	}
 }
