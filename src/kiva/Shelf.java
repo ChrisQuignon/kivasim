@@ -65,9 +65,8 @@ public class Shelf extends Agent {
 	
 
 	private void answerRequest() {
-		String requestedProducts[] = request.getContent().split(", ");
-		
-		List<String> availableProducts = available(requestedProducts);
+		List<String> availableProducts = new ArrayList<String>();
+		availableProducts = available(request.getContent().split(", "));
 				
 		// Answer
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);

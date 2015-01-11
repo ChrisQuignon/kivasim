@@ -1,7 +1,9 @@
 package src.kiva;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -22,14 +24,14 @@ import jade.lang.acl.MessageTemplate;
 public class Picker extends Agent {
 
 	// A map of all shelfs and their products
-	private Map<AID, String[]> availableShelfs;
+	private Map<AID, List<String>> availableShelfs;
 
 	// A map of all shelfs and what products we requested from there
-	private Map<AID, String[]> requestedShelfs;
+	private Map<AID, List<String>> requestedShelfs;
 	boolean allRequested;
 
 	// The order of this shelf
-	protected String[] order;
+	protected List<String> order;
 
 	private HashSet<AID> orderAgents;
 	private HashSet<AID> deliveryRobots;
@@ -39,10 +41,11 @@ public class Picker extends Agent {
 
 	protected void setup() {
 
+		order = new ArrayList<String>();
 		orderAgents = new HashSet<AID>();
 		deliveryRobots = new HashSet<AID>();
-		availableShelfs = new HashMap<AID, String[]>();
-		requestedShelfs = new HashMap<AID, String[]>();
+		availableShelfs = new HashMap<AID, List<String>>();
+		requestedShelfs = new HashMap<AID, List<String>>();
 		allRequested = false;
 
 		addBehaviour(new ActionPicker());
@@ -59,7 +62,7 @@ public class Picker extends Agent {
 			inform = myAgent.receive(MessageTemplate
 					.MatchPerformative(ACLMessage.INFORM));
 
-			if (order == null) {
+			if (order.size() == 0 ) {
 				System.out.println("requestOrders");
 				requestOrder();
 				//TODO define frequencey
@@ -70,9 +73,9 @@ public class Picker extends Agent {
 				setOrder();
 			}
 
-			if (order != null && availableShelfs.isEmpty()) {
+			if (order.size() != 0 && availableShelfs.isEmpty()) {
 				requestShelfAgents();
-				System.out.println("requestShelfAgent");
+				System.out.println("request Shelf Agent");
 			}
 
 			// We got an inform
@@ -85,8 +88,13 @@ public class Picker extends Agent {
 				// inform from a Shelf
 				else {
 					System.out.println("Answer from shelf");
-					availableShelfs.put(inform.getSender(), inform.getContent()
-							.split(", "));
+					
+					List<String> products = new ArrayList<String>();
+					for(String product: inform.getContent().split(", ")){
+						products.add(product);
+						}
+					availableShelfs.put(inform.getSender(), products);
+					
 					
 					//TODO check if allRequested
 					//allRequested = (availableShelfs.size() == requestedShelfs.size());
@@ -95,26 +103,14 @@ public class Picker extends Agent {
 				}
 			}
 
-			//
-			if (order != null && !allRequested) {
-				// check what products still need to be requested
-
-				// find products we need that are not requested yet
-
-				// order delivery
+			if (order != null && allRequested) {
+				
+				//TODO continue here
+				Map <AID, List<String>> requests = mapRequests();
 				
 				
 				requestDeliveryRobot();
-				System.out.println("Requesting Delivery");
 				
-			}
-
-			if (order != null && allRequested) {
-
-				System.out.println("NEXT PLS");
-				
-				//TODO Continue here
-				takeDown();
 				// wait for inform to pick from which shelf
 				// check what was ordered from this shelf
 				// decrease products from shelf
@@ -125,10 +121,28 @@ public class Picker extends Agent {
 			}
 		}
 
+		private Map<AID, List<String>> mapRequests() {
+			
+			//decide which product need to be brought from which shelf
+			
+			//TODO
+			takeDown();
+			//copy order
+			Map<AID, List<String>> request = new HashMap<AID, List<String>>();
+			
+			String checkOrder = "";
+			for(String product:order){
+				checkOrder = checkOrder + product;
+			}
+			
+			return request;
+		}
+
 		// ACTIONS
 		private void requestDeliveryRobot() {
 
 			// TODO request delivery robot
+			System.out.println("Requesting Delivery");
 
 			// What if the shelf is already carried by another robot?
 
@@ -153,20 +167,19 @@ public class Picker extends Agent {
 				checkOrder = checkOrder + product;
 			}
 			
-			for(String[] available : availableShelfs.values()){
+			for(List<String> available : availableShelfs.values()){
 				for(String product:available){
 					//Strip order
 					if(checkOrder.contains(product)){
 						int i = checkOrder.indexOf(product);
 						checkOrder = checkOrder.substring(0, i) + 
-								checkOrder.substring(i+product.length(), checkOrder.length());	
+								checkOrder.substring(i+product.length()+1, checkOrder.length());
 					}
 				}
 			}
 			
 			allRequested = (checkOrder.length() == 0);
-			
-			System.out.println(allRequested);
+			//System.out.println(allRequested);
 		}
 
 		private void requestShelfAgents() {
@@ -177,7 +190,7 @@ public class Picker extends Agent {
 			template.addServices(sd);
 
 			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-
+						
 			try {
 				DFAgentDescription[] result = DFService.search(myAgent,
 						template);
@@ -186,19 +199,22 @@ public class Picker extends Agent {
 				}
 				for (String s : order) {
 					if (msg.getContent() == null) {
-						msg.setContent("");
+						msg.setContent(" ");
 					}
 					msg.setContent(msg.getContent() + s + ", ");
 				}
 				send(msg);
-
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
 		}
 
 		private void setOrder() {
-			order = confirm.getContent().split((", "));
+			
+			for(String product:confirm.getContent().split((", "))){
+				order.add(product);
+			}
+			
 			orderAgents.add(confirm.getSender());
 
 			System.out.println(this.getAgent().getName() + " has order: "
