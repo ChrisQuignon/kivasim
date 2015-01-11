@@ -105,11 +105,9 @@ public class Picker extends Agent {
 
 			if (order != null && allRequested) {
 				
-				//TODO continue here
 				Map <AID, List<String>> requests = mapRequests();
 				
-				
-				requestDeliveryRobot();
+				requestDeliveryRobot(requests);
 				
 				// wait for inform to pick from which shelf
 				// check what was ordered from this shelf
@@ -125,24 +123,53 @@ public class Picker extends Agent {
 			
 			//decide which product need to be brought from which shelf
 			
-			//TODO
-			takeDown();
 			//copy order
-			Map<AID, List<String>> request = new HashMap<AID, List<String>>();
+			Map<AID, List<String>> requests = new HashMap<AID, List<String>>();
 			
 			String checkOrder = "";
 			for(String product:order){
 				checkOrder = checkOrder + product;
 			}
 			
-			return request;
+
+			//iterate over availableshelves
+			for(AID shelf: availableShelfs.keySet()){
+					List<String> request = new ArrayList<String>();
+				
+					//iterate over products
+					for(String available:availableShelfs.get(shelf)){
+						
+						if(checkOrder.contains(available)){
+							//add to request
+							request.add(available);
+							//remove available from checkorder
+							int i = checkOrder.indexOf(available);
+							checkOrder = checkOrder.substring(0, i) + 
+									checkOrder.substring(i+available.length(), checkOrder.length());
+							}
+						 
+						if(request.size() > 0){
+							requests.put(shelf, request);
+						}
+					}
+				}
+			
+			//What if there are products left?
+			
+			return requests;
 		}
 
 		// ACTIONS
-		private void requestDeliveryRobot() {
+		private void requestDeliveryRobot(Map<AID, List<String>> requests) {
 
 			// TODO request delivery robot
 			System.out.println("Requesting Delivery");
+			for(AID agent:requests.keySet()){
+				System.out.println(agent.getName());
+				for(String product:requests.get(agent)){
+					System.out.println(product);
+				}
+			}
 
 			// What if the shelf is already carried by another robot?
 
@@ -173,7 +200,7 @@ public class Picker extends Agent {
 					if(checkOrder.contains(product)){
 						int i = checkOrder.indexOf(product);
 						checkOrder = checkOrder.substring(0, i) + 
-								checkOrder.substring(i+product.length()+1, checkOrder.length());
+								checkOrder.substring(i+product.length(), checkOrder.length());
 					}
 				}
 			}
@@ -199,9 +226,11 @@ public class Picker extends Agent {
 				}
 				for (String s : order) {
 					if (msg.getContent() == null) {
-						msg.setContent(" ");
+						msg.setContent(s);
 					}
-					msg.setContent(msg.getContent() + s + ", ");
+					else{
+						msg.setContent(msg.getContent() + ", " + s);
+					}
 				}
 				send(msg);
 			} catch (FIPAException fe) {
