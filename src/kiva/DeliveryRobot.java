@@ -4,6 +4,10 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 /**
  * The deliverer responds to product requests and delivers shelf to the picker
@@ -17,8 +21,20 @@ public class DeliveryRobot extends Agent {
 
 	protected void setup() {
 
-		// TODO register behaviour in yellow pages
-
+		// Registered behaviour in yellow pages
+		 DFAgentDescription dfd = new DFAgentDescription();
+		 dfd.setName(getAID());
+		 ServiceDescription sd = new ServiceDescription();
+		 sd.setType("shelfPicking");
+		 sd.setName("Delivery robot");
+		 dfd.addServices(sd);
+		 try {
+		 DFService.register(this, dfd);
+		 }
+		 catch (FIPAException fe) {
+		 fe.printStackTrace();
+		 }
+		 
 		// Add cyclic behaviour for informing_free behaviour
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
