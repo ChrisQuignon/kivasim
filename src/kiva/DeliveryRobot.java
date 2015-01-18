@@ -16,7 +16,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 public class DeliveryRobot extends Agent {
 
-	boolean answer;
+	boolean isAvailable = true;
 	AID picker;
 	ACLMessage request;
 	ACLMessage inform;
@@ -46,16 +46,34 @@ public class DeliveryRobot extends Agent {
 						.MatchPerformative(ACLMessage.INFORM));
 
 				/*
-				 * The delivery robot confirms to the picker's request.
+				 * The delivery robot confirms to the picker's request for
+				 * availability.
 				 */
 				if (request != null) {
+					if (isAvailable == true) {
+						ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+						msg.setContent("Available");
+						msg.addReceiver(picker);
+						send(msg);
+						System.out.println("Delivery Robot: Confirmed "
+								+ msg.getContent() + " to picker's request");
+					}
+					/*
+					 * Delivery robot confirms to picker that it is carrying a
+					 * shelf
+					 */
+					else{
 					ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
-					msg.setContent("OK");
+					msg.setContent("CarryingShelf");
 					msg.addReceiver(picker);
 					send(msg);
-					System.out
-							.println("Delivery Robot: Confirmed picker's request");
+					System.out.println("Delivery Robot: Confirmed "
+							+ msg.getContent() + " to picker's request");
+					isAvailable = false;
+					}
+					
 				}
+
 			};
 		});
 	}
