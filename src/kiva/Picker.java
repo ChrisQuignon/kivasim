@@ -162,7 +162,23 @@ public class Picker extends Agent {
 		// ACTIONS
 		private void requestDeliveryRobot(Map<AID, List<String>> requests) {
 
-			// TODO request delivery robot
+			// Requesting a delivery robot
+			
+			DFAgentDescription template = new DFAgentDescription();
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("shelfPicking");
+			template.addServices(sd);
+			try {
+				DFAgentDescription[] result = DFService.search(myAgent,
+						template);
+				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+				for (DFAgentDescription agent : result) {
+					msg.addReceiver(agent.getName());
+					send(msg);
+				}
+			} catch (FIPAException fe) {
+				fe.printStackTrace();
+			}
 			System.out.println("Requesting Delivery");
 			for(AID agent:requests.keySet()){
 				System.out.println(agent.getName());

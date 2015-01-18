@@ -1,5 +1,6 @@
 package src.kiva;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -16,46 +17,44 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 public class DeliveryRobot extends Agent {
 
 	boolean answer;
-
+	AID picker;
+	ACLMessage request;
 	ACLMessage inform;
 
 	protected void setup() {
 
 		// Registered behaviour in yellow pages
-		 DFAgentDescription dfd = new DFAgentDescription();
-		 dfd.setName(getAID());
-		 ServiceDescription sd = new ServiceDescription();
-		 sd.setType("shelfPicking");
-		 sd.setName("Delivery robot");
-		 dfd.addServices(sd);
-		 try {
-		 DFService.register(this, dfd);
-		 }
-		 catch (FIPAException fe) {
-		 fe.printStackTrace();
-		 }
-		 
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("shelfPicking");
+		sd.setName("Delivery robot");
+		dfd.addServices(sd);
+		try {
+			DFService.register(this, dfd);
+		} catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
+
 		// Add cyclic behaviour for informing_free behaviour
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
 
+				request = myAgent.receive(MessageTemplate
+						.MatchPerformative(ACLMessage.REQUEST));
 				inform = myAgent.receive(MessageTemplate
 						.MatchPerformative(ACLMessage.INFORM));
 
 				/*
-				 * The delivery robots respond by informing the picker that they
-				 * are ready/free to carry the shelves.
+				 * The delivery robot confirms to the picker's request.
 				 */
-				if (!answer && inform != null) {
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.setContent("READY");
-					msg.addReceiver(inform.getSender());
+				if (request != null) {
+					ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+					msg.setContent("OK");
+					msg.addReceiver(picker);
 					send(msg);
-					System.out.println("Informed by picker to be: " + inform);
-					System.out.println("Informed the picker that I am: "
-							+ msg.getContent());
-					System.out.println("working..");
-					answer = true;
+					System.out
+							.println("Delivery Robot: Confirmed picker's request");
 				}
 			};
 		});
