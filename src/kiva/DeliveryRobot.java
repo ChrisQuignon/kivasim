@@ -62,8 +62,9 @@ public class DeliveryRobot extends Agent {
 					// No message if not available
 				}
 				if (inform != null) {
+					//TODO: Differentiate between the informs
 					System.out.printf(
-							"One Delivery Robot will bring the shelf. ",
+							"Delivery Robot: Bringing the requested Shelf to the Picker ",
 							inform.getContent());
 //TODO: Inform the picker that he can pick from the shelf
 				}

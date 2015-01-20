@@ -59,6 +59,7 @@ public class Order extends Agent {
 					}
 					msg.addReceiver(picker);
 					send(msg);
+					System.out.println("Order Agent: Sending an order to Picker");
 				}
 
 				// maybe check if we are still processing the orders.

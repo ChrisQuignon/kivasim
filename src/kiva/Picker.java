@@ -69,7 +69,7 @@ public class Picker extends Agent {
 			request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
 			if (order.size() == 0) {
-				System.out.println("requestOrders");
+				System.out.println("Picker: Requesting for an order.");
 				requestOrder();
 				// TODO define frequency
 			}
@@ -88,12 +88,9 @@ public class Picker extends Agent {
 				
 				if (confirm.getContent().equals("Available")) {
 					availableDeliveryRobots.add(confirm.getSender());
-					System.out
-							.println("Delivery robots are ready to pick shelves!");
 					//Pick one out of the robots that answered
 					//Request the contents of the shelf to the first delivery robot that answered.
 						
-						System.out.printf("Requesting order to the Delivery robot ", confirm.getSender().getName());
 					}
 				else{
 
@@ -116,15 +113,15 @@ public class Picker extends Agent {
 
 			if (order.size() != 0 && availableShelfs.isEmpty()) {
 				requestShelfAgents();
-				System.out.println("request Shelf Agent");
+				System.out.println("Picker: Requesting for products from the Shelves");
 			}
 
 			// We got a inform
 			if (inform != null) {
 
-				// inform from a Shelf
+				// Picker receives an inform from the shelves if they have a products.
 
-				System.out.println("Answer from shelf");
+				System.out.println("Picker: Receiving answers from the shelves");
 
 				List<String> products = new ArrayList<String>();
 				for (String product : inform.getContent().split(", ")) {
@@ -214,11 +211,12 @@ public class Picker extends Agent {
 						} catch (FIPAException fe) {
 							fe.printStackTrace();
 						}
+						System.out.println("Picker : Asking all the delivery robots if they are available.");
 		}
 		
 		//Map one delivery robot per shelf.
 		private void requestShelfDelivery(Map<AID, List<String>> requests) {
-			System.out.println("Requesting one delivery robot to bring the shelf");
+			System.out.println("Picker:Requesting one delivery robot to bring the shelf");
 			for (AID shelf : requests.keySet()) {
 				System.out.println(shelf.getName());
 				//choosing the delivery robots
@@ -278,6 +276,7 @@ public class Picker extends Agent {
 			// System.out.println(allRequested);
 		}
 
+		// Request for products from the Shelves.
 		private void requestShelfAgents() {
 
 			DFAgentDescription template = new DFAgentDescription();
@@ -305,7 +304,7 @@ public class Picker extends Agent {
 				fe.printStackTrace();
 			}
 		}
-
+//Picker confirms getting an order
 		private void setOrder() {
 
 			for (String product : confirm.getContent().split((", "))) {
@@ -313,8 +312,8 @@ public class Picker extends Agent {
 			}
 
 			orderAgents.add(confirm.getSender());
-
-			System.out.println(this.getAgent().getName() + " has order: "
+			
+			System.out.println(this.getAgent().getName() + " confirms he has order: "
 					+ confirm.getContent());
 		}
 
