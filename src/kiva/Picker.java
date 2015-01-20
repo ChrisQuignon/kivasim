@@ -216,9 +216,9 @@ public class Picker extends Agent {
 		
 		//Map one delivery robot per shelf.
 		private void requestShelfDelivery(Map<AID, List<String>> requests) {
-			System.out.println("Picker:Requesting one delivery robot to bring the shelf");
+			
 			for (AID shelf : requests.keySet()) {
-				System.out.println(shelf.getName());
+				System.out.printf("Picker: Requesting one delivery robot to bring the shelf ", shelf.getName());
 				//choosing the delivery robots
 				System.out.println(availableDeliveryRobots.size());
 				for(AID DeliveryRobot : availableDeliveryRobots){
