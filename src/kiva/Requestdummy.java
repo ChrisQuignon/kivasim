@@ -16,7 +16,7 @@ public class Requestdummy extends Agent {
 
 	private int maxPartsPerOrder = 1;
 	private int maxAmountPerPart = 1;
-	private double maxSecDelay = 30;
+	private double maxSecDelay = 12;
 
 	private String order;
 	private String recipient = "recipient";
@@ -40,7 +40,6 @@ public class Requestdummy extends Agent {
 			recAgent.start();
 
 		} catch (StaleProxyException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -62,7 +61,6 @@ public class Requestdummy extends Agent {
 			order.substring(0, (order.length() - 2));
 
 			// publish order
-			// TODO: change Message Type
 			System.out.println("ORDER: " + order);
 			AID dest = new AID(recipient, AID.ISLOCALNAME);
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -77,7 +75,6 @@ public class Requestdummy extends Agent {
 			try {
 				Thread.sleep(rand.nextInt((int) (maxSecDelay * 1000)));
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			// repeat

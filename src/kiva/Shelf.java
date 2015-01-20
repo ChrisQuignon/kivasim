@@ -56,7 +56,6 @@ public class Shelf extends Agent {
 
 				if (request != null) {
 					answerRequest();
-					// System.out.println("ACK");
 				}
 				// What if the Shelf is empty or fragmented?
 			}
@@ -76,12 +75,10 @@ public class Shelf extends Agent {
 		}
 		msg.addReceiver(request.getSender());
 		send(msg);
-		//System.out.println("OK, GOT" + msg.getContent());
 
 		// No answer if we do not have any product
 	}
 
-	// TODO: write method to check for available products
 	protected List<String> available(String[] requestedProducts) {
 		// puts all the available product from the request into a string
 		List<String> availableProducts = new ArrayList<String>();

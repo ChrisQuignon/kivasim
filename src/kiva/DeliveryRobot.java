@@ -1,6 +1,5 @@
 package src.kiva;
 
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -19,6 +18,7 @@ public class DeliveryRobot extends Agent {
 	boolean isAvailable;
 	ACLMessage request;
 	ACLMessage inform;
+	ACLMessage confirm;
 
 	protected void setup() {
 
@@ -44,6 +44,13 @@ public class DeliveryRobot extends Agent {
 						.MatchPerformative(ACLMessage.REQUEST));
 				inform = myAgent.receive(MessageTemplate
 						.MatchPerformative(ACLMessage.INFORM));
+				confirm = myAgent.receive(MessageTemplate
+						.MatchPerformative(ACLMessage.CONFIRM));
+				
+				if(confirm != null){
+					System.out.println("Delivery Agent returns");
+					isAvailable = true;
+				}
 
 				/*
 				 * The delivery robot confirms to the picker's request for
@@ -69,10 +76,16 @@ public class DeliveryRobot extends Agent {
 
 					// simulate delivery time
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(3000);
 					} catch (InterruptedException e) {
 					}
 					// TODO: Inform the picker that he can pick from the shelf
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.setContent("PICK " + inform.getContent());
+					msg.addReceiver(inform.getSender());
+					send(msg);
+					System.out.println("Delivery Robot: "
+							+ inform.getSender().getName() + " can now pick " + inform.getContent());
 				}
 
 			};

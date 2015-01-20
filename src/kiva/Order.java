@@ -72,6 +72,13 @@ public class Order extends Agent {
 	protected void takeDown() {
 		System.out.println("Order agent " + getAID().getName()
 				+ " terminating");
+		
+		String orderString = order[0];
+		for(int i = 1; i<order.length; i++){
+			orderString = orderString + ", " + order[i];
+		}
+		System.out.println("Order was: " + orderString);
+		
 		doDelete();
 	}
 }

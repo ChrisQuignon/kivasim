@@ -5,9 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import sun.security.util.Length;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -17,6 +15,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
+import jade.wrapper.ControllerException;
 
 /**
  * The picker agent requests orders. From these orders, it requests the
@@ -24,14 +25,14 @@ import jade.lang.acl.MessageTemplate;
  **/
 public class Picker extends Agent {
 
-	// A map of all shelfs and their products
-	private Map<AID, List<String>> availableShelfs;
+	// A map of all shelves and their products
+	private Map<AID, List<String>> availableshelves;
 
-	// A map of all shelfs and what products we requested from there
-	private Map<AID, List<String>> requestedShelfs;
-	private Map<AID, List<String>> shelfsToBePicked;
+	// A map of all shelves and what products we requested from there
+	private Map<AID, List<String>> requestedshelves;
+	private Map<AID, List<String>> shelvesToBePicked;
 	boolean allProductsRequested;
-	boolean allShelfsRequested;
+	boolean allshelvesRequested;
 
 	// The order of this shelf
 	protected List<String> order;
@@ -50,8 +51,8 @@ public class Picker extends Agent {
 		orderAgents = new HashSet<AID>();
 		requestedDeliveryRobots = new HashSet<AID>();
 		availableDeliveryRobots = new HashSet<AID>();
-		availableShelfs = new HashMap<AID, List<String>>();
-		requestedShelfs = new HashMap<AID, List<String>>();
+		availableshelves = new HashMap<AID, List<String>>();
+		requestedshelves = new HashMap<AID, List<String>>();
 		allProductsRequested = false;
 
 		addBehaviour(new ActionPicker());
@@ -94,23 +95,11 @@ public class Picker extends Agent {
 					// robot that answered.
 
 				} else {
-
-					// System.out.println("Picker: Got an Order");
 					setOrder();
-				}
-
-				/*
-				 * If the delivery robots CONFIRM "CarryingShelf" then put them
-				 * into requestedDeliveryRobots hashset
-				 */
-
-				if (confirm.getContent() == "CarryingShelf") {
-					System.out
-							.println("Delivery robot is busy carrying a shelf!");
 				}
 			}
 
-			if (order.size() != 0 && availableShelfs.isEmpty()) {
+			if (order.size() != 0 && availableshelves.isEmpty()) {
 				requestShelfAgents();
 				System.out
 						.println("Picker: Requesting for products from the Shelves");
@@ -119,38 +108,57 @@ public class Picker extends Agent {
 			// We got a inform
 			if (inform != null) {
 
-				// Picker receives an inform from the shelves if they have a
-				// products.
+				// We can pick something
+				if(inform.getContent().startsWith("PICK ")){
+					
+					//we got an inform to pick
+					String aidString = inform.getContent().substring("PICK".length()+1, inform.getContent().length());
+					AID shelf = new AID(aidString, true);
+					System.out.println("Picker picks " + requestedshelves.get(shelf)+ " from " + shelf.getName());
 
-				System.out
-						.println("Picker: Receiving answers from the shelves");
-
-				List<String> products = new ArrayList<String>();
-				for (String product : inform.getContent().split(", ")) {
-					products.add(product);
+					
+					//kill order
+					AgentContainer controller = myAgent.getContainerController();
+					for(AID order: orderAgents){
+						try {
+							AgentController orderAgent = controller.getAgent(order.getLocalName());
+							orderAgent.kill();
+						} catch (ControllerException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					
+					//Confirm picking to Delivery Robot
+					ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+					for (AID agent : requestedDeliveryRobots) {
+						msg.addReceiver(agent);
+						send(msg);
+					}
+					
+					//reset this Agent
+					setup();
 				}
-				availableShelfs.put(inform.getSender(), products);
+				else{
+					//we have an Answer from a shelf
+					System.out
+					.println("Picker: Receiving answers from the shelves");
 
-				// TODO check if allRequested
-				// allRequested = (availableShelfs.size() ==
-				// requestedShelfs.size());
-				updateAllProductsRequested();
-				// System.out.println(allProductsRequested);
+					List<String> products = new ArrayList<String>();
+					for (String product : inform.getContent().split(", ")) {
+						products.add(product);
+					}
+					availableshelves.put(inform.getSender(), products);
+					
+					updateAllProductsRequested();
+				}
 
 			}
 
-			if (order != null && !allShelfsRequested) {
+			if (order != null) {
 
-				shelfsToBePicked = mapRequests();
-				requestShelfDelivery(shelfsToBePicked);
-
-				// wait for inform to pick from which shelf
-				// check what was ordered from this shelf
-				// decrease products from shelf
-				// delete from requested
-
-				// if everything is picked: kill order agent
-				// reset this agent
+				shelvesToBePicked = mapRequests();
+				requestShelfDelivery(shelvesToBePicked);
 			}
 		}
 
@@ -167,11 +175,11 @@ public class Picker extends Agent {
 			}
 
 			// iterate over availableshelves
-			for (AID shelf : availableShelfs.keySet()) {
+			for (AID shelf : availableshelves.keySet()) {
 				List<String> request = new ArrayList<String>();
 
 				// iterate over products
-				for (String available : availableShelfs.get(shelf)) {
+				for (String available : availableshelves.get(shelf)) {
 
 					if (checkOrder.contains(available)) {
 						// add to request
@@ -231,10 +239,13 @@ public class Picker extends Agent {
 					msg.setContent(shelf.getName());
 					msg.addReceiver(DeliveryRobot);
 					send(msg);
+					
+					requestedshelves.put(shelf, requests.get(shelf));
+					
 					availableDeliveryRobots.remove(DeliveryRobot);
 
-					// TODO remove this after confirm from delivery robot
-					shelfsToBePicked.remove(shelf);
+					//we trust the delivery robot that he will do as told
+					shelvesToBePicked.remove(shelf);
 					requestedDeliveryRobots.add(DeliveryRobot);
 					break;
 				}
@@ -243,17 +254,6 @@ public class Picker extends Agent {
 
 			// What if the shelf is already carried by another robot?
 
-			// possibly wait for answer
-			// pop() from availability
-			// store request in requested
-
-			// set allRequested Flag
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 
 		// Check if all shelves have the products that were requested
@@ -265,7 +265,7 @@ public class Picker extends Agent {
 				checkOrder = checkOrder + product;
 			}
 
-			for (List<String> available : availableShelfs.values()) {
+			for (List<String> available : availableshelves.values()) {
 				for (String product : available) {
 					// Strip order
 					if (checkOrder.contains(product)) {
@@ -278,14 +278,6 @@ public class Picker extends Agent {
 			}
 
 			allProductsRequested = (checkOrder.length() == 0);
-			// System.out.println(allRequested);
-		}
-
-		// Check if all shelves have the products that were requested
-		private void updateAllShelfsRequested() {
-
-			allShelfsRequested = (requestedShelfs.size() == shelfsToBePicked
-					.size());
 			// System.out.println(allRequested);
 		}
 

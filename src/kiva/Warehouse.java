@@ -40,7 +40,6 @@ public class Warehouse extends Agent {
 					System.out.println("Spawning " + agent.getKey()
 							+ Integer.toString(i));
 				} catch (StaleProxyException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
