@@ -16,8 +16,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 public class DeliveryRobot extends Agent {
 
-	boolean isAvailable = true;
-	AID picker;
+	boolean isAvailable;
 	ACLMessage request;
 	ACLMessage inform;
 
@@ -35,6 +34,7 @@ public class DeliveryRobot extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
+		isAvailable = true;
 
 		// Add cyclic behaviour for informing_free behaviour
 		addBehaviour(new CyclicBehaviour(this) {
@@ -53,25 +53,19 @@ public class DeliveryRobot extends Agent {
 					if (isAvailable == true) {
 						ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
 						msg.setContent("Available");
-						msg.addReceiver(picker);
+						msg.addReceiver(request.getSender());
 						send(msg);
 						System.out.println("Delivery Robot: Confirmed "
 								+ msg.getContent() + " to picker's request");
+						isAvailable = false;
 					}
-					/*
-					 * Delivery robot confirms to picker that it is carrying a
-					 * shelf
-					 */
-					else{
-					ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
-					msg.setContent("CarryingShelf");
-					msg.addReceiver(picker);
-					send(msg);
-					System.out.println("Delivery Robot: Confirmed "
-							+ msg.getContent() + " to picker's request");
-					isAvailable = false;
-					}
-					
+					// No message if not available
+				}
+				if (inform != null) {
+					System.out.printf(
+							"One Delivery Robot will bring the shelf. ",
+							inform.getContent());
+//TODO: Inform the picker that he can pick from the shelf
 				}
 
 			};

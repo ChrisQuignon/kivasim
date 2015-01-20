@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import sun.security.util.Length;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -28,7 +29,7 @@ public class Picker extends Agent {
 
 	// A map of all shelfs and what products we requested from there
 	private Map<AID, List<String>> requestedShelfs;
-	boolean allRequested;
+	boolean allProductsRequested;
 
 	// The order of this shelf
 	protected List<String> order;
@@ -39,6 +40,8 @@ public class Picker extends Agent {
 
 	ACLMessage confirm;
 	ACLMessage inform;
+	ACLMessage request;
+	
 
 	protected void setup() {
 
@@ -48,7 +51,7 @@ public class Picker extends Agent {
 		availableDeliveryRobots = new HashSet<AID>();
 		availableShelfs = new HashMap<AID, List<String>>();
 		requestedShelfs = new HashMap<AID, List<String>>();
-		allRequested = false;
+		allProductsRequested = false;
 
 		addBehaviour(new ActionPicker());
 	}
@@ -63,27 +66,42 @@ public class Picker extends Agent {
 					.MatchPerformative(ACLMessage.CONFIRM));
 			inform = myAgent.receive(MessageTemplate
 					.MatchPerformative(ACLMessage.INFORM));
+			request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
 			if (order.size() == 0) {
 				System.out.println("requestOrders");
 				requestOrder();
 				// TODO define frequency
 			}
+			
+			if(availableDeliveryRobots.size() == 0){
+				requestAllDeliveryRobots();
+			}
 
 			if (confirm != null) {
-				System.out.println("GetOrder");
-				setOrder();
 
 				/*
 				 * If the delivery robots CONFIRM "available", then add all of
 				 * them to availableDeliveryRobots hashset
 				 */
-
-				if (confirm.getContent() == "Available") {
+				
+				
+				if (confirm.getContent().equals("Available")) {
 					availableDeliveryRobots.add(confirm.getSender());
 					System.out
 							.println("Delivery robots are ready to pick shelves!");
+					//Pick one out of the robots that answered
+					//Request the contents of the shelf to the first delivery robot that answered.
+						
+						System.out.printf("Requesting order to the Delivery robot ", confirm.getSender().getName());
+					}
+				else{
+
+					System.out.println("GetOrder");
+					setOrder();
 				}
+					
+				
 
 				/*
 				 * If the delivery robots CONFIRM "CarryingShelf" then put them
@@ -91,9 +109,8 @@ public class Picker extends Agent {
 				 */
 
 				if (confirm.getContent() == "CarryingShelf") {
-					requestedDeliveryRobots.add(confirm.getSender());
 					System.out
-							.println("Delivery robots is busy carrying a shelf!");
+							.println("Delivery robot is busy carrying a shelf!");
 				}
 			}
 
@@ -119,15 +136,14 @@ public class Picker extends Agent {
 				// allRequested = (availableShelfs.size() ==
 				// requestedShelfs.size());
 				updateAllRequested();
-				// System.out.println(allRequested);
+				//System.out.println(allProductsRequested);
 
 			}
 
-			if (order != null && allRequested) {
+			if (order != null && allProductsRequested) {
 
-				Map<AID, List<String>> requests = mapRequests();
-
-				requestDeliveryRobot(requests);
+				Map<AID, List<String>> shelfToBePicked = mapRequests();
+				requestShelfDelivery(shelfToBePicked);
 
 				// wait for inform to pick from which shelf
 				// check what was ordered from this shelf
@@ -180,30 +196,46 @@ public class Picker extends Agent {
 		}
 
 		// ACTIONS
-		private void requestDeliveryRobot(Map<AID, List<String>> requests) {
+		// Requesting all delivery robot
+		private void requestAllDeliveryRobots(){
+			
+						DFAgentDescription template = new DFAgentDescription();
+						ServiceDescription sd = new ServiceDescription();
+						sd.setType("shelfPicking");
+						template.addServices(sd);
+						try {
+							DFAgentDescription[] result = DFService.search(myAgent,
+									template);
+							ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+							for (DFAgentDescription agent : result) {
+								msg.addReceiver(agent.getName());
+								send(msg);
+							}
+						} catch (FIPAException fe) {
+							fe.printStackTrace();
+						}
+		}
+		
+		//Map one delivery robot per shelf.
+		private void requestShelfDelivery(Map<AID, List<String>> requests) {
+			System.out.println("Requesting one delivery robot to bring the shelf");
+			for (AID shelf : requests.keySet()) {
+				System.out.println(shelf.getName());
+				//choosing the delivery robots
+				System.out.println(availableDeliveryRobots.size());
+				for(AID DeliveryRobot : availableDeliveryRobots){
 
-			// Requesting a delivery robot
-			DFAgentDescription template = new DFAgentDescription();
-			ServiceDescription sd = new ServiceDescription();
-			sd.setType("shelfPicking");
-			template.addServices(sd);
-			try {
-				DFAgentDescription[] result = DFService.search(myAgent,
-						template);
-				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-				for (DFAgentDescription agent : result) {
-					msg.addReceiver(agent.getName());
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.setContent(shelf.getName());
+					msg.addReceiver(DeliveryRobot);
 					send(msg);
+					availableDeliveryRobots.remove(DeliveryRobot);
+					requestedDeliveryRobots.add(DeliveryRobot);
+					break;
 				}
-			} catch (FIPAException fe) {
-				fe.printStackTrace();
-			}
-			System.out.println("Requesting a Delivery Robot");
-			for (AID agent : requests.keySet()) {
-				System.out.println(agent.getName());
-				for (String product : requests.get(agent)) {
-					System.out.println(product);
-				}
+				
+				
+				
 			}
 
 			// What if the shelf is already carried by another robot?
@@ -220,7 +252,8 @@ public class Picker extends Agent {
 				e.printStackTrace();
 			}
 		}
-
+		
+//Check if all shelves have the products that were requested
 		private void updateAllRequested() {
 
 			// copy order in String
@@ -241,7 +274,7 @@ public class Picker extends Agent {
 				}
 			}
 
-			allRequested = (checkOrder.length() == 0);
+			allProductsRequested = (checkOrder.length() == 0);
 			// System.out.println(allRequested);
 		}
 
