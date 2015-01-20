@@ -62,11 +62,17 @@ public class DeliveryRobot extends Agent {
 					// No message if not available
 				}
 				if (inform != null) {
-					//TODO: Differentiate between the informs
-					System.out.printf(
-							"Delivery Robot: Bringing the requested Shelf to the Picker ",
-							inform.getContent());
-//TODO: Inform the picker that he can pick from the shelf
+					// TODO: Differentiate between the informs
+					System.out
+							.println("Delivery Robot: Bringing the requested Shelf"
+									+ inform.getContent() + " to the Picker.");
+
+					// simulate delivery time
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+					// TODO: Inform the picker that he can pick from the shelf
 				}
 
 			};
