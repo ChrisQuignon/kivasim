@@ -79,6 +79,12 @@ public class Order extends Agent {
 		}
 		System.out.println("Order was: " + orderString);
 		
+		//deregister agent from the yellow pages
+		try {
+			DFService.deregister(this);
+		} catch (Exception e) {
+		}
+		
 		doDelete();
 	}
 }

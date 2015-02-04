@@ -11,7 +11,7 @@ import jade.wrapper.StaleProxyException;
 
 public class Warehouse extends Agent {
 
-	AgentController recAgent;
+	AgentController controller;
 
 	// How many Agents do we spawn?
 	private Map<String, Integer> agents;
@@ -33,10 +33,10 @@ public class Warehouse extends Agent {
 		for (Entry<String, Integer> agent : agents.entrySet()) {
 			for (int i = 0; i < agent.getValue(); i++) {
 				try {
-					recAgent = container.createNewAgent(agent.getKey()
+					controller = container.createNewAgent(agent.getKey()
 							+ Integer.toString(i),
 							"src.kiva." + agent.getKey(), null);
-					recAgent.start();
+					controller.start();
 					System.out.println("Spawning " + agent.getKey()
 							+ Integer.toString(i));
 				} catch (StaleProxyException e1) {

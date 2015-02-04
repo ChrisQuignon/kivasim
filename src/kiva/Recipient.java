@@ -32,7 +32,6 @@ public class Recipient extends Agent {
 								orders);
 						orderAgent.start();
 					} catch (StaleProxyException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}

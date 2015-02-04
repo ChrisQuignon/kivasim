@@ -71,13 +71,13 @@ public class Picker extends Agent {
 			request = myAgent.receive(MessageTemplate
 					.MatchPerformative(ACLMessage.REQUEST));
 
-			if (order.size() == 0) {
+			if (order.isEmpty()) {
 				System.out.println("Picker: Requesting for an order.");
 				requestOrder();
 				// TODO define frequency
 			}
 
-			if (!allProductsRequested && order.size() != 0) {
+			if (!allProductsRequested && ! order.isEmpty()) {
 				requestAllDeliveryRobots();
 			}
 
@@ -99,7 +99,7 @@ public class Picker extends Agent {
 				}
 			}
 
-			if (order.size() != 0 && availableshelves.isEmpty()) {
+			if (! order.isEmpty() && availableshelves.isEmpty()) {
 				requestShelfAgents();
 				System.out
 						.println("Picker: Requesting for products from the Shelves");
@@ -118,6 +118,7 @@ public class Picker extends Agent {
 
 					
 					//kill order
+					//Assumption: we only have one product to pick
 					AgentContainer controller = myAgent.getContainerController();
 					for(AID order: orderAgents){
 						try {
@@ -141,8 +142,7 @@ public class Picker extends Agent {
 				}
 				else{
 					//we have an Answer from a shelf
-					System.out
-					.println("Picker: Receiving answers from the shelves");
+					System.out.println("Picker: Receiving answers from the shelves");
 
 					List<String> products = new ArrayList<String>();
 					for (String product : inform.getContent().split(", ")) {
@@ -191,7 +191,7 @@ public class Picker extends Agent {
 										checkOrder.length());
 					}
 
-					if (request.size() > 0) {
+					if (! request.isEmpty()) {
 						requests.put(shelf, request);
 					}
 				}
@@ -222,7 +222,7 @@ public class Picker extends Agent {
 				fe.printStackTrace();
 			}
 			System.out
-					.println("Picker : Asking all the delivery robots if they are available.");
+					.println("Picker: Asking all the delivery robots if they are available.");
 		}
 
 		// Map one delivery robot per shelf.

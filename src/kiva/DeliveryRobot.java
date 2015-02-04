@@ -69,7 +69,6 @@ public class DeliveryRobot extends Agent {
 					// No message if not available
 				}
 				if (inform != null) {
-					// TODO: Differentiate between the informs
 					System.out
 							.println("Delivery Robot: Bringing the requested Shelf"
 									+ inform.getContent() + " to the Picker.");
@@ -79,7 +78,7 @@ public class DeliveryRobot extends Agent {
 						Thread.sleep(3000);
 					} catch (InterruptedException e) {
 					}
-					// TODO: Inform the picker that he can pick from the shelf
+					//Inform the picker that he can pick from the shelf
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 					msg.setContent("PICK " + inform.getContent());
 					msg.addReceiver(inform.getSender());
